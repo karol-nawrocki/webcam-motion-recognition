@@ -1,0 +1,12 @@
+* Replace cam dict with dataclass
+* Save plots when processing finishes (handle key press event in matplotlib)
+* Check different resizing of the image and other interpolation algorithms (is it needed? is performance affected by full-resolution images?)
+* Test with more than 2 cameras
+* Calibration phase - learn the background to handle cases when person enters the FOV but stands still. Remember about changing lightning conditions.
+* KPIs:
+  - Save frames to files - csv?
+  - Load them as numpy array
+  - Label data where motion occurs
+  - Calculate metrics to find the best thresholds
+* Add debouncing - when threshold is exceeded, save images for n frames even if threshold is not exceeded again.
+* GUI
