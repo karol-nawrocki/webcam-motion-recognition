@@ -33,6 +33,7 @@ def get_available_cameras_indexes():
 IMAGE_RESIZE = False
 PIXEL_DIFF_THRESHOLD = 3
 INITIALIZATION_OFFSET = 10
+PLOT_SAVE_INTERVAL = 500
 OUTPUT_DIR = Path(r'output')
 SHOW_PLOTS = True
 
@@ -50,17 +51,16 @@ if __name__ == '__main__':
 
     print('Initialization complete!')
     while True:
-        frame_number += 1
         for cam_idx, cam in enumerate(cameras):
             cam['current_frame'] = get_image_from_camera(cam['video_capture'], resize=IMAGE_RESIZE)
             avg_diff = get_diff_between_frames(cam['previous_frame'], cam['current_frame'])
             cam['diffs'].append(avg_diff)
             cam['previous_frame'] = cam['current_frame']
+            timestamp = datetime.now().strftime("%y_%m_%d_%H_%M_%S_%f")
             if avg_diff > PIXEL_DIFF_THRESHOLD and frame_number > INITIALIZATION_OFFSET:
                 print(f'Threshold exceeded: {avg_diff} (frame {frame_number})')
-                timestamp = datetime.now().strftime("%y_%m_%d_%H_%M_%S_%f")
                 file_name = f'camera_{cam["idx"]}_{timestamp}_frame_{frame_number}.jpg'
-                cam['exceeded_threshold_x'].append(frame_number - 1)
+                cam['exceeded_threshold_x'].append(frame_number)
                 cam['exceeded_threshold_y'].append(avg_diff)
                 cv2.imwrite(str(OUTPUT_DIR / file_name), cam['current_frame'])
             if SHOW_PLOTS:
@@ -70,12 +70,17 @@ if __name__ == '__main__':
                 plt.subplot(len(cameras), len(cameras), cam_idx + 1 + len(cameras))
                 plt.imshow(cam['current_frame'], interpolation='nearest')
 
+                # Save only when it's the last camera, so all plots are included in the image:
+                if frame_number % PLOT_SAVE_INTERVAL == 0 and cam['idx'] == [c['idx'] for c in cameras][-1]:
+                    plt.savefig(f'plot_{timestamp}_frame_{frame_number}')
+
         if SHOW_PLOTS:
             plt.pause(0.01)
             plt.clf()
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
+        frame_number += 1
 
     for cam in cameras:
         print(f'Releasing camera {cam["idx"]}')
