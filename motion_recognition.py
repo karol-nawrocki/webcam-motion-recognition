@@ -31,9 +31,9 @@ def get_available_cameras_indexes():
 
 
 IMAGE_RESIZE = False
-PIXEL_DIFF_THRESHOLD = 3
-INITIALIZATION_OFFSET = 10
-PLOT_SAVE_INTERVAL = 500
+PIXEL_DIFF_THRESHOLD = 10
+INITIALIZATION_OFFSET = 20
+PLOT_SAVE_INTERVAL = 2500
 OUTPUT_DIR = Path(r'output')
 SHOW_PLOTS = True
 
@@ -48,6 +48,8 @@ if __name__ == '__main__':
                      } for idx in get_available_cameras_indexes()
                     )
     frame_number = 0
+
+    plt.figure(figsize=(12, 6), dpi=80)
 
     print('Initialization complete!')
     while True:
@@ -64,10 +66,10 @@ if __name__ == '__main__':
                 cam['exceeded_threshold_y'].append(avg_diff)
                 cv2.imwrite(str(OUTPUT_DIR / file_name), cam['current_frame'])
             if SHOW_PLOTS:
-                plt.subplot(len(cameras), len(cameras), cam_idx + 1)
+                plt.subplot(len(cameras), 2, (cam_idx * 2) + 1)
                 plt.plot(range(len(cam['diffs'])), cam['diffs'])
                 plt.scatter(cam['exceeded_threshold_x'], cam['exceeded_threshold_y'], c='red', s=5)
-                plt.subplot(len(cameras), len(cameras), cam_idx + 1 + len(cameras))
+                plt.subplot(len(cameras), 2, (cam_idx * 2) + 2)
                 plt.imshow(cam['current_frame'], interpolation='nearest')
 
                 # Save only when it's the last camera, so all plots are included in the image:
