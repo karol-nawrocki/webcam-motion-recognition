@@ -35,7 +35,7 @@ PIXEL_DIFF_THRESHOLD = 10
 INITIALIZATION_OFFSET = 20
 PLOT_SAVE_INTERVAL = 2500
 OUTPUT_DIR = Path(r'output')
-SHOW_PLOTS = True
+SHOW_PLOTS = False
 
 
 if __name__ == '__main__':
@@ -55,6 +55,8 @@ if __name__ == '__main__':
     while True:
         for cam_idx, cam in enumerate(cameras):
             cam['current_frame'] = get_image_from_camera(cam['video_capture'], resize=IMAGE_RESIZE)
+            if cam['current_frame'] is None:
+                continue
             avg_diff = get_diff_between_frames(cam['previous_frame'], cam['current_frame'])
             cam['diffs'].append(avg_diff)
             cam['previous_frame'] = cam['current_frame']
@@ -65,12 +67,13 @@ if __name__ == '__main__':
                 cam['exceeded_threshold_x'].append(frame_number)
                 cam['exceeded_threshold_y'].append(avg_diff)
                 cv2.imwrite(str(OUTPUT_DIR / file_name), cam['current_frame'])
-            if SHOW_PLOTS:
+
                 plt.subplot(len(cameras), 2, (cam_idx * 2) + 1)
                 plt.plot(range(len(cam['diffs'])), cam['diffs'])
                 plt.scatter(cam['exceeded_threshold_x'], cam['exceeded_threshold_y'], c='red', s=5)
-                plt.subplot(len(cameras), 2, (cam_idx * 2) + 2)
-                plt.imshow(cam['current_frame'], interpolation='nearest')
+                if SHOW_PLOTS:
+                    plt.subplot(len(cameras), 2, (cam_idx * 2) + 2)
+                    plt.imshow(cam['current_frame'], interpolation='nearest')
 
                 # Save only when it's the last camera, so all plots are included in the image:
                 if frame_number % PLOT_SAVE_INTERVAL == 0 and cam['idx'] == [c['idx'] for c in cameras][-1]:
@@ -78,7 +81,7 @@ if __name__ == '__main__':
 
         if SHOW_PLOTS:
             plt.pause(0.01)
-            plt.clf()
+        plt.clf()
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
